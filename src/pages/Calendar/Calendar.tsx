@@ -1,15 +1,12 @@
 import React from 'react';
 import styled from 'styled-components';
-import CalendarFooter from '../../components/CalendarFooter/CalendarFooter';
-import CalendarHeader from '../../components/CalendarHeader/CalendarHeader';
-import CalendarBody from '../../components/CalendarBody/CalendarBody';
+import CalComponents from '../../components/CalComponents/CalComponents';
+
 const Calendar = () => {
   return (
     <CalendarWrapper>
       <CalendarContainer>
-        <CalendarHeader />
-        <CalendarBody />
-        <CalendarFooter />
+        <CalComponents startDate={new Date()} range={3} />
       </CalendarContainer>
     </CalendarWrapper>
   );
@@ -27,11 +24,10 @@ const CalendarWrapper = styled.div`
 `;
 
 const CalendarContainer = styled.div`
-  display: flex;
-  flex-direction: column;
   width: 400px;
   height: 600px;
   border-radius: 20px;
   box-shadow: 5px 5px rgb(150, 150, 150);
   background-color: white;
+  overflow: scroll;
 `;
