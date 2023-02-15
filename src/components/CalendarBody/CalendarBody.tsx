@@ -3,31 +3,20 @@ import styled, { css } from 'styled-components';
 
 const WEEKS = ['일', '월', '화', '수', '목', '금', '토'];
 
-const CalendarBody = () => {
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+type CalendarProps = {
+  startDate: Date;
+  startSelected: Date | null;
+  endSelected: Date | null;
+  clickDateHandler: (el: Date) => void;
+};
 
-  const clickDateHandler = (date: Date | '') => {
-    if (date === '') {
-      return;
-    }
-    if (startDate === null && endDate === null) {
-      setStartDate(date);
-    } else if (
-      !!startDate &&
-      endDate === null &&
-      (startDate.getTime() === date.getTime() || startDate.getTime() >= date.getTime())
-    ) {
-      setStartDate(null);
-    } else if (!!startDate && endDate === null) {
-      setEndDate(date);
-    } else if (!!startDate && !!endDate) {
-      setStartDate(null);
-      setEndDate(null);
-    }
-  };
-
-  const today = new Date();
+const CalendarBody = ({
+  startDate,
+  startSelected,
+  endSelected,
+  clickDateHandler,
+}: CalendarProps) => {
+  const today = startDate;
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
   const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   const emptyDate = new Array(31).fill('');
@@ -45,7 +34,7 @@ const CalendarBody = () => {
     <CalBody>
       <Days>
         {WEEKS.map((el, idx) => (
-          <DayButton key={idx} selected={false}>
+          <DayButton key={idx} selectedStart={false} selectedEnd={false} range={false}>
             {el}
           </DayButton>
         ))}
@@ -54,9 +43,11 @@ const CalendarBody = () => {
         {totalDateArr.slice(0, 7).map((el, idx) => (
           <DayButton
             key={idx}
-            selected={
-              !!el
-                ? el?.getTime() === startDate?.getTime() || el?.getTime() === endDate?.getTime()
+            selectedStart={!!el ? el?.getTime() === startSelected?.getTime() : false}
+            selectedEnd={!!el ? el?.getTime() === endSelected?.getTime() : false}
+            range={
+              !!el && !!startSelected && !!endSelected
+                ? el?.getTime() > startSelected?.getTime() && el?.getTime() < endSelected?.getTime()
                 : false
             }
             onClick={() => clickDateHandler(el)}
@@ -69,9 +60,11 @@ const CalendarBody = () => {
         {totalDateArr.slice(7, 14).map((el, idx) => (
           <DayButton
             key={idx}
-            selected={
-              !!el
-                ? el?.getTime() === startDate?.getTime() || el?.getTime() === endDate?.getTime()
+            selectedStart={!!el ? el?.getTime() === startSelected?.getTime() : false}
+            selectedEnd={!!el ? el?.getTime() === endSelected?.getTime() : false}
+            range={
+              !!el && !!startSelected && !!endSelected
+                ? el?.getTime() > startSelected?.getTime() && el?.getTime() < endSelected?.getTime()
                 : false
             }
             onClick={() => clickDateHandler(el)}
@@ -84,9 +77,11 @@ const CalendarBody = () => {
         {totalDateArr.slice(14, 21).map((el, idx) => (
           <DayButton
             key={idx}
-            selected={
-              !!el
-                ? el?.getTime() === startDate?.getTime() || el?.getTime() === endDate?.getTime()
+            selectedStart={!!el ? el?.getTime() === startSelected?.getTime() : false}
+            selectedEnd={!!el ? el?.getTime() === endSelected?.getTime() : false}
+            range={
+              !!el && !!startSelected && !!endSelected
+                ? el?.getTime() > startSelected?.getTime() && el?.getTime() < endSelected?.getTime()
                 : false
             }
             onClick={() => clickDateHandler(el)}
@@ -99,9 +94,11 @@ const CalendarBody = () => {
         {totalDateArr.slice(21, 28).map((el, idx) => (
           <DayButton
             key={idx}
-            selected={
-              !!el
-                ? el?.getTime() === startDate?.getTime() || el?.getTime() === endDate?.getTime()
+            selectedStart={!!el ? el?.getTime() === startSelected?.getTime() : false}
+            selectedEnd={!!el ? el?.getTime() === endSelected?.getTime() : false}
+            range={
+              !!el && !!startSelected && !!endSelected
+                ? el?.getTime() > startSelected?.getTime() && el?.getTime() < endSelected?.getTime()
                 : false
             }
             onClick={() => clickDateHandler(el)}
@@ -114,9 +111,11 @@ const CalendarBody = () => {
         {totalDateArr.slice(28, 35).map((el, idx) => (
           <DayButton
             key={idx}
-            selected={
-              !!el
-                ? el?.getTime() === startDate?.getTime() || el?.getTime() === endDate?.getTime()
+            selectedStart={!!el ? el?.getTime() === startSelected?.getTime() : false}
+            selectedEnd={!!el ? el?.getTime() === endSelected?.getTime() : false}
+            range={
+              !!el && !!startSelected && !!endSelected
+                ? el?.getTime() > startSelected?.getTime() && el?.getTime() < endSelected?.getTime()
                 : false
             }
             onClick={() => clickDateHandler(el)}
@@ -137,6 +136,7 @@ const CalBody = styled.main`
   flex-direction: column;
   flex: 7;
   width: 100%;
+  margin-bottom: 10px;
 `;
 
 const Days = styled.div`
@@ -148,7 +148,7 @@ const Days = styled.div`
   background-color: bisque;
 `;
 
-const DayButton = styled.div<{ selected: boolean }>`
+const DayButton = styled.div<{ selectedStart: boolean; range: boolean; selectedEnd: boolean }>`
   flex: 1;
   position: relative;
   width: 40px;
@@ -157,9 +157,8 @@ const DayButton = styled.div<{ selected: boolean }>`
   text-align: center;
   line-height: 40px;
   z-index: 10;
-  ${({ selected }) => {
-    console.log(selected);
-    if (selected) {
+  ${({ selectedStart, selectedEnd }) => {
+    if (selectedStart) {
       return css`
         ::before {
           content: '';
@@ -173,8 +172,53 @@ const DayButton = styled.div<{ selected: boolean }>`
           background-color: beige;
           z-index: -2;
         }
-        /* border-radius: 50%; */
-        /* background-color: bisque; */
+        ::after {
+          content: '';
+          display: block;
+          position: absolute;
+          right: -30%;
+          top: 0;
+          transform: translateX(-50%);
+          width: 30px;
+          height: 40px;
+          background-color: beige;
+          z-index: -2;
+        }
+      `;
+    }
+    if (selectedEnd) {
+      return css`
+        ::before {
+          content: '';
+          display: block;
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background-color: beige;
+          z-index: -2;
+        }
+        ::after {
+          content: '';
+          display: block;
+          position: absolute;
+          left: 0;
+          top: 0;
+          transform: translateX(-50%);
+          width: 40px;
+          height: 40px;
+          background-color: beige;
+          z-index: -2;
+        }
+      `;
+    }
+  }}
+  ${({ range }) => {
+    if (range) {
+      return css`
+        background-color: beige;
       `;
     }
   }}
